@@ -1,2 +1,3 @@
 # pmnm-hocphan
-# [LICENSE](https://github.com/quocHuy1706/pmnm-hocphan/blob/main/LICENSE)
+## License
+[MIT LICENSE](https://github.com/quocHuy1706/pmnm-hocphan/blob/main/LICENSE)

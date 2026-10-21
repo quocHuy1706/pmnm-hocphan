@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Trang chủ{% endblock %}
+{% block content %}
+<div class="hero">
+    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Logo {{ site_name }}">
+    <h1>{{ site_name }}</h1>
+    <p>Chào mừng bạn đến với trang web của chúng tôi.</p>
+</div>
+
+<div class="card" style="max-width:420px; margin: 0 auto;">
+    <h2 style="font-size:1.1rem; margin-bottom:1rem;">Nhập tên để chào</h2>
+    <form action="{{ url_for('about') }}" method="post">
+        <div class="form-group">
+            <label for="name">Tên của bạn:</label>
+            <input type="text" id="name" name="name" placeholder="Nhập tên...">
+        </div>
+        <button type="submit" class="btn-primary">Gửi</button>
+    </form>
+</div>
+{% endblock %}

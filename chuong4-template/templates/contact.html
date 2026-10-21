@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Liên hệ{% endblock %}
+{% block content %}
+<h1>Trang Liên hệ</h1>
+<div class="card" style="max-width:520px;">
+    <p>Liên hệ với chúng tôi qua email hoặc điền form dưới đây.</p>
+    <form>
+        <div class="form-group">
+            <label for="contact-name">Họ tên:</label>
+            <input type="text" id="contact-name" name="contact_name" placeholder="Nguyễn Văn A">
+        </div>
+        <div class="form-group">
+            <label for="contact-email">Email:</label>
+            <input type="email" id="contact-email" name="contact_email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+            <label for="message">Nội dung:</label>
+            <textarea id="message" name="message" rows="4" placeholder="Nội dung liên hệ..."></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Gửi liên hệ</button>
+    </form>
+</div>
+{% endblock %}

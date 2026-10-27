@@ -1,0 +1,5 @@
+:root { --dashboard-blue: #123b78; }
+body { color: #1f2937; }
+.dashboard-hero { background: linear-gradient(135deg, var(--dashboard-blue), #1d73c9); }
+.card { border-radius: .85rem; }
+.table th { white-space: nowrap; }

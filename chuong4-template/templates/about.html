@@ -1,3 +1,0 @@
-{% extends "base.html" %}
-{% block title %}Giới thiệu{% endblock %}
-{% block content %}<div class="card border-0 shadow-sm"><div class="card-body"><h1 class="h3">Giới thiệu</h1>{% if name %}<p>Xin chào, <strong>{{ name }}</strong>! Cảm ơn bạn đã ghé thăm {{ site_name }}.</p>{% else %}<p>Đây là trang giới thiệu của {{ site_name }}.</p>{% endif %}<form action="{{ url_for('about') }}" method="post" class="row g-2"><div class="col-sm"><label class="visually-hidden" for="name">Tên của bạn</label><input class="form-control" id="name" name="name" placeholder="Nhập tên..."></div><div class="col-sm-auto"><button class="btn btn-primary" type="submit">Gửi</button></div></form></div></div>{% endblock %}

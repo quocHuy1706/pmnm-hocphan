@@ -1,5 +1,7 @@
 :root { --dashboard-blue: #123b78; }
 body { color: #1f2937; }
 .dashboard-hero { background: linear-gradient(135deg, var(--dashboard-blue), #1d73c9); }
+.library-hero { background: linear-gradient(135deg, #173b6d, #2196a6); }
 .card { border-radius: .85rem; }
+.book-card { border-radius: .85rem; }
 .table th { white-space: nowrap; }

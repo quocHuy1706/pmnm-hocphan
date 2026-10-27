@@ -1,45 +1,38 @@
 # pmnm-hocphan
 
-Repository bài thực hành Flask cho các chương 3–5. Các app dùng Bootstrap 5 và có thể chạy độc lập.
+Một Flask app duy nhất cho các bài thực hành chương 3–5. Mọi chức năng chạy từ `app.py` ở thư mục gốc; các chương được phân biệt bằng đường dẫn.
 
-## Chạy nhanh
-
-Tạo môi trường ảo rồi cài thư viện:
+## Chạy
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-```
-
-App dashboard + chương 3:
-
-```powershell
 flask --app app run --debug
 ```
 
-Mở `http://127.0.0.1:5000`. Dashboard liên kết tới hai app độc lập ở cổng 5001 và 5002.
+Mở `http://127.0.0.1:5000` để xem dashboard.
 
-LibraryMS v0.2 (chương 4):
+## Các đường dẫn chính
+
+- `/` — dashboard chung.
+- `/students`, `/search`, `/api/students` — chương 3: danh sách, lọc, tìm kiếm, CSV, chi tiết và API.
+- `/library`, `/library/books`, `/api/books` — chương 4: LibraryMS v0.2; `/books` vẫn được giữ làm alias ngắn.
+- `/forms` — dashboard chương 5; `/register`, `/login`, `/profile`, `/logout` — xác thực dùng chung.
+- `/calculator`, `/diemhocphan`, `/bmi` — các bài form chương 5; mỗi POST đều có CSRF.
+
+Chương 4 vẫn giữ các đường dẫn cũ `/about` và `/contact`.
+
+## Cấu hình bảo mật
+
+Đặt `SECRET_KEY` khi chạy lâu dài hoặc triển khai thật:
 
 ```powershell
-cd chuong4-template
-flask --app app run --debug --port 5001
-```
-
-Forms, xác thực và các bài tính (chương 5):
-
-```powershell
-cd chuong5-form
 $env:SECRET_KEY = "thay-bang-chuoi-bi-mat-dai"
-flask --app app run --debug --port 5002
+flask --app app run
 ```
 
-## Nội dung đã triển khai
-
-- App gốc có dashboard Bootstrap công khai và chuyển toàn bộ chương 3 sang Jinja templates, giữ các URL `/students`, `/search`, CSV, redirect `/sv/<mssv>` và `/api/students`; không còn HTML ghép trong `app.py` hay dùng `escape()`.
-- `chuong4-template` là LibraryMS v0.2 độc lập: `base.html`, macro `book_card`/`status_badge`, context processor thể loại, lọc responsive, chi tiết sách, 404 có mô tả và `/api/books`.
-- `chuong5-form` dùng Flask-WTF với CSRF toàn cục, đăng ký/đăng nhập/hồ sơ/đăng xuất, mật khẩu băm bằng Werkzeug và dictionary trong bộ nhớ. Các form calculator/BMI/điểm học phần cũ được giữ lại và bổ sung CSRF.
+Mật khẩu được băm bằng Werkzeug; người dùng được lưu trong dictionary bộ nhớ nên sẽ mất khi khởi động lại app.
 
 ## Kiểm thử
 
@@ -47,8 +40,6 @@ flask --app app run --debug --port 5002
 python -m unittest discover -s tests -v
 ```
 
-Test kiểm tra dashboard, chức năng chương 3, lọc/API/404 của LibraryMS và luồng xác thực cùng CSRF.
-
 ## Git
 
-Đã tạo commit cục bộ và tag `v0.2` theo yêu cầu bài tập. Chưa push lên GitHub.
+Đã tạo commit cục bộ và tag `v0.2`; chưa push lên GitHub.

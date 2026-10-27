@@ -7,19 +7,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def load_module(name: str, path: Path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    assert spec and spec.loader
-    spec.loader.exec_module(module)
-    return module
-
-
-root_app = load_module("root_app", ROOT / "app.py")
-library_app = load_module("library_app", ROOT / "chuong4-template" / "app.py")
-forms_app = load_module("forms_app", ROOT / "chuong5-form" / "app.py")
+SPEC = importlib.util.spec_from_file_location("project_app", ROOT / "app.py")
+app_module = importlib.util.module_from_spec(SPEC)
+assert SPEC and SPEC.loader
+SPEC.loader.exec_module(app_module)
 
 
 def csrf_token(html: bytes) -> str:
@@ -29,8 +20,12 @@ def csrf_token(html: bytes) -> str:
 
 
 class AppTests(unittest.TestCase):
-    def test_student_pages_keep_original_features(self):
-        client = root_app.app.test_client()
+    def test_repository_has_one_app_file(self):
+        app_files = [path for path in ROOT.rglob("app.py") if ".venv" not in path.parts]
+        self.assertEqual([ROOT / "app.py"], app_files)
+
+    def test_student_routes_keep_original_features(self):
+        client = app_module.app.test_client()
         self.assertEqual(client.get("/").status_code, 200)
         filtered = client.get("/students?lop=K47A")
         self.assertEqual(filtered.status_code, 200)
@@ -43,23 +38,22 @@ class AppTests(unittest.TestCase):
         self.assertEqual(not_found.status_code, 404)
         self.assertIn("Không có sinh viên".encode("utf-8"), not_found.data)
 
-    def test_library_requirements(self):
-        client = library_app.app.test_client()
-        self.assertIn("Tổng số đầu sách".encode("utf-8"), client.get("/").data)
-        self.assertNotIn(b"book_card", client.get("/").data)
-        web_books = client.get("/books?category=Web").data
+    def test_library_is_a_route_group_in_same_app(self):
+        client = app_module.app.test_client()
+        self.assertIn("Tổng số đầu sách".encode("utf-8"), client.get("/library").data)
+        web_books = client.get("/library/books?category=Web").data
         self.assertIn(b"Flask Web Development", web_books)
         self.assertNotIn("Cơ sở dữ liệu hiện đại".encode("utf-8"), web_books)
         self.assertIn(b"Web", client.get("/books/2").data)
         self.assertEqual(client.get("/api/books").json["total"], 6)
-        not_found = client.get("/books/999")
+        not_found = client.get("/library/books/999")
         self.assertEqual(not_found.status_code, 404)
         self.assertIn("Không có sách".encode("utf-8"), not_found.data)
 
-    def test_forms_auth_and_csrf(self):
-        forms_app.USERS.clear()
-        forms_app.app.config.update(TESTING=True)
-        client = forms_app.app.test_client()
+    def test_forms_auth_and_csrf_are_shared(self):
+        app_module.USERS.clear()
+        app_module.app.config.update(TESTING=True)
+        client = app_module.app.test_client()
         register_page = client.get("/register")
         self.assertEqual(register_page.status_code, 200)
         missing_csrf = client.post("/register", data={"username": "alice", "email": "alice@example.com", "password": "password123", "confirm_password": "password123"})
@@ -67,7 +61,7 @@ class AppTests(unittest.TestCase):
         token = csrf_token(register_page.data)
         response = client.post("/register", data={"username": "alice", "email": "alice@example.com", "password": "password123", "confirm_password": "password123", "csrf_token": token})
         self.assertEqual(response.status_code, 302)
-        self.assertNotEqual(forms_app.USERS["alice"]["password_hash"], "password123")
+        self.assertNotEqual(app_module.USERS["alice"]["password_hash"], "password123")
         self.assertEqual(client.get("/profile").status_code, 200)
         profile_token = csrf_token(client.get("/profile").data)
         self.assertEqual(client.post("/logout", data={"csrf_token": profile_token}).status_code, 302)

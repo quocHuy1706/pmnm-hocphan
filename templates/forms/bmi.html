@@ -1,1 +1,41 @@
-{% extends "base.html" %}{% block title %}BMI{% endblock %}{% block content %}<div class="row justify-content-center"><div class="col-md-7 col-lg-5"><div class="card shadow-sm"><div class="card-body"><h1 class="h3">Tính chỉ số BMI</h1><p class="text-secondary">Nhập chiều cao và cân nặng của bạn.</p><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="mb-3"><label class="form-label" for="chieucao">Chiều cao (cm)</label><input class="form-control {% if loi_cao %}is-invalid{% endif %}" id="chieucao" name="chieucao" value="{{ chieucao or '' }}" required>{% if loi_cao %}<div class="invalid-feedback">{{ loi_cao }}</div>{% endif %}</div><div class="mb-3"><label class="form-label" for="cannang">Cân nặng (kg)</label><input class="form-control {% if loi_nang %}is-invalid{% endif %}" id="cannang" name="cannang" value="{{ cannang or '' }}" required>{% if loi_nang %}<div class="invalid-feedback">{{ loi_nang }}</div>{% endif %}</div><button class="btn btn-primary" type="submit">Tính BMI</button></form>{% if bmi is defined %}<div class="alert alert-{{ mau }} mt-3 mb-0"><div class="display-6 fw-bold">{{ bmi }}</div><div>{{ phanloai }}</div><small>Cân nặng tham khảo: {{ can_min }} – {{ can_max }} kg.</small></div>{% endif %}</div></div></div></div>{% endblock %}
+{% extends "base.html" %}
+{% block title %}BMI{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h3">Tính chỉ số BMI</h1>
+                <p class="text-secondary">Nhập chiều cao và cân nặng của bạn.</p>
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label" for="chieucao">Chiều cao (cm)</label>
+                        <input class="form-control {% if loi_cao %}is-invalid{% endif %}" id="chieucao" name="chieucao"
+                            value="{{ chieucao or '' }}" required>
+                        {% if loi_cao %}
+                        <div class="invalid-feedback">{{ loi_cao }} </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="cannang">Cân nặng (kg)</label>
+                        <input class="form-control {% if loi_nang %}is-invalid{% endif %}" id="cannang" name="cannang"
+                            value="{{ cannang or '' }}" required>
+                        {% if loi_nang %}
+                        <div class="invalid-feedback">{{ loi_nang }} </div>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-primary" type="submit">Tính BMI</button>
+                </form>
+                {% if bmi is defined %}
+                <div class="alert alert-{{ mau }} mt-3 mb-0">
+                    <div class="display-6 fw-bold">{{ bmi }}</div>
+                    <div>{{ phanloai }}=</div>
+                    <small>Cân nặng tham khảo: {{ can_min }} – {{ can_max }} kg.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

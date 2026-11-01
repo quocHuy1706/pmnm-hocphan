@@ -1,1 +1,38 @@
-{% extends "base.html" %}{% block title %}Máy tính{% endblock %}{% block content %}<div class="row justify-content-center"><div class="col-md-7 col-lg-5"><div class="card shadow-sm"><div class="card-body"><h1 class="h3">Máy tính đơn giản</h1><p class="text-secondary">Chọn phép tính và nhập hai số.</p><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="mb-3"><label class="form-label" for="a">Số thứ nhất</label><input class="form-control" id="a" name="a" required></div><div class="mb-3"><label class="form-label" for="operation">Phép tính</label><select class="form-select" id="operation" name="operation"><option value="cong">Cộng</option><option value="tru">Trừ</option><option value="nhan">Nhân</option><option value="chia">Chia</option></select></div><div class="mb-3"><label class="form-label" for="b">Số thứ hai</label><input class="form-control" id="b" name="b" required></div><button class="btn btn-primary" type="submit">Tính</button></form>{% if ketqua is not none %}<div class="alert alert-info mt-3 mb-0">{{ ketqua }}</div>{% endif %}</div></div></div></div>{% endblock %}
+{% extends "base.html" %}{% block title %}Máy tính{% endblock %}{% block content %}<div
+    class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h3">Máy tính đơn giản</h1>
+                <p class="text-secondary">Chọn phép tính và nhập hai số.</p>
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label" for="a">Số thứ nhất</label>
+                        <input class="form-control" id="a" name="a" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="operation">Phép tính</label>
+                        <select class="form-select" id="operation" name="operation">
+                            <option value="cong">Cộng</option>
+                            <option value="tru">Trừ</option>
+                            <option value="nhan">Nhân</option>
+                            <option value="chia">Chia</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="b">Số thứ hai</label>
+                        <input class="form-control" id="b" name="b" required>
+                    </div>
+                    <button class="btn btn-primary" type="submit">Tính</button>
+                </form>
+                {% if ketqua is not none %}
+                <div class="alert alert-info mt-3 mb-0">
+                    {{ ketqua }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

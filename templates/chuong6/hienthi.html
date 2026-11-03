@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Chương 6 - Truy vấn sinh viên{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Chương 6 - Truy vấn cơ sở dữ liệu</h1>
+
+    {% if not students %}
+    <div class="alert alert-warning">
+        Chưa có dữ liệu.
+        <a href="{{ url_for('add_sample') }}">Thêm dữ liệu mẫu</a>
+    </div>
+    {% else %}
+    <div class="card mb-4">
+        <div class="card-header">Kết quả truy vấn</div>
+        <div class="card-body">
+            <p>
+                <strong>get(3):</strong>
+                {% if student_3 %}
+                {{ student_3.name }} - {{ student_3.mssv }}
+                {% else %}
+                Không tìm thấy
+                {% endif %}
+            </p>
+
+            <p>
+                <strong>get(99):</strong>
+                {{ student_99 or "None" }}
+            </p>
+
+            <p>
+                <strong>filter_by(mssv='23T1020002'):</strong>
+                {% if binh %}
+                {{ binh.name }} - GPA {{ "%.2f"|format(binh.gpa) }}
+                {% else %}
+                Không tìm thấy
+                {% endif %}
+            </p>
+
+            <p>
+                <strong>Tổng số sinh viên:</strong>
+                {{ total }}
+            </p>
+
+            <p>
+                <strong>GPA trung bình:</strong>
+                {{ "%.2f"|format(avg) }}
+            </p>
+        </div>
+    </div>
+
+    <h2 class="h4">Sinh viên có GPA từ 7.0 trở lên</h2>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>MSSV</th>
+                <th>Họ tên</th>
+                <th>GPA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in good_students %}
+            <tr>
+                <td>{{ student.id }}</td>
+                <td>{{ student.mssv }}</td>
+                <td>{{ student.name }}</td>
+                <td>{{ "%.2f"|format(student.gpa) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 class="h4 mt-4">Tất cả sinh viên</h2>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>MSSV</th>
+                <th>Họ tên</th>
+                <th>GPA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ student.id }}</td>
+                <td>{{ student.mssv }}</td>
+                <td>{{ student.name }}</td>
+                <td>{{ "%.2f"|format(student.gpa) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

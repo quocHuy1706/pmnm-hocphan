@@ -9,12 +9,16 @@ from urllib.parse import urlsplit
 
 from flask import Flask, abort, flash, make_response, redirect, render_template, request, session, url_for
 from flask_wtf import FlaskForm, CSRFProtect
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Float, String
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from werkzeug.security import check_password_hash, generate_password_hash
 from wtforms import BooleanField, PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, Length, Regexp
 
 
 app = Flask(__name__)
+
 app.config.from_mapping(
     SECRET_KEY=os.environ.get("SECRET_KEY") or os.urandom(32),
     SESSION_COOKIE_HTTPONLY=True,
@@ -23,7 +27,29 @@ app.config.from_mapping(
     WTF_CSRF_TIME_LIMIT=None,
     SITE_NAME="PMMNM · Bài tập Flask",
 )
+
+app.config["SECRET_KEY"] = "dev-chi-dung-khi-phat-trien"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///chuong4.db"
+
 csrf = CSRFProtect(app)
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+db = SQLAlchemy(app, model_class=Base)
+
+
+class Student(db.Model):
+    id: Mapped[int] = db.mapped_column(primary_key=True)
+    mssv: Mapped[str] = db.mapped_column(String(10), unique=True)
+    name: Mapped[str] = db.mapped_column(String(100))
+    gpa: Mapped[float] = db.mapped_column(Float, default=0.0)
+
+
+with app.app_context():
+    db.create_all()
 
 
 STUDENTS = {
@@ -62,6 +88,17 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Đăng nhập")
 
 
+def student_text(student):
+    if student is None:
+        return "None"
+    return (
+        f"ID={student.id} | "
+        f"MSSV={student.mssv} | "
+        f"Họ tên={student.name} | "
+        f"GPA={student.gpa:.2f}"
+    )
+
+
 def current_user():
     username = session.get("username")
     return USERS.get(username) if username else None
@@ -74,7 +111,6 @@ def login_required(view):
             flash("Vui lòng đăng nhập để tiếp tục.", "warning")
             return redirect(url_for("login", next=request.full_path))
         return view(*args, **kwargs)
-
     return wrapped
 
 
@@ -122,7 +158,7 @@ def home():
 
 
 # Chương 3: danh sách sinh viên, tìm kiếm, CSV và API.
-@app.route("/students")
+@app.route("/chuong3")
 def student_list():
     selected_class = request.args.get("lop", "").strip()
     students = [
@@ -131,16 +167,16 @@ def student_list():
         if not selected_class or selected_class.casefold() in student["lop"].casefold()
     ]
     classes = sorted({student["lop"] for student in STUDENTS.values()})
-    return render_template("students/list.html", students=students, classes=classes, selected_class=selected_class)
+    return render_template("chuong3/list.html", students=students, classes=classes, selected_class=selected_class)
 
 
-@app.route("/students/<mssv>")
+@app.route("/chuong3/<mssv>")
 def student_detail(mssv):
     student = STUDENTS.get(mssv)
     if student is None:
         abort(404, description=f"Không có sinh viên với MSSV = {mssv}.")
     average = tinh_tb(student["scores"])
-    return render_template("students/detail.html", mssv=mssv, student=student, average=average, classification=xep_loai(average))
+    return render_template("chuong3/detail.html", mssv=mssv, student=student, average=average, classification=xep_loai(average))
 
 
 @app.route("/sv/<mssv>")
@@ -148,7 +184,7 @@ def sv_redirect(mssv):
     return redirect(url_for("student_detail", mssv=mssv), code=301)
 
 
-@app.route("/students/<mssv>/export")
+@app.route("/chuong3/<mssv>/export")
 def export_csv(mssv):
     student = STUDENTS.get(mssv)
     if student is None:
@@ -163,7 +199,7 @@ def export_csv(mssv):
     return response
 
 
-@app.route("/students/export")
+@app.route("/chuong3/export")
 def export_all():
     output = io.StringIO()
     writer = csv.writer(output)
@@ -184,36 +220,36 @@ def search():
     if query:
         lowered = query.casefold()
         results = [{"mssv": mssv, "name": student["name"]} for mssv, student in STUDENTS.items() if lowered in student["name"].casefold() or lowered in mssv.casefold()]
-    return render_template("students/search.html", query=query, results=results)
+    return render_template("chuong3/search.html", query=query, results=results)
 
 
-@app.route("/api/students")
+@app.route("/api/chuong3")
 def api_students():
     return STUDENTS
 
 
-# Chương 4: LibraryMS v0.2 trong cùng app, dưới /library.
-@app.route("/library")
+# Chương 4: LibraryMS v0.2 trong cùng app, dưới /chuong4.
+@app.route("/chuong4")
 def library_home():
     recent_books = sorted(BOOKS, key=lambda book: book["year"], reverse=True)[:3]
-    return render_template("library/home.html", total_books=len(BOOKS), available_books=sum(book["available"] for book in BOOKS), recent_books=recent_books)
+    return render_template("chuong4/home.html", total_books=len(BOOKS), available_books=sum(book["available"] for book in BOOKS), recent_books=recent_books)
 
 
-@app.route("/library/books")
+@app.route("/chuong4/books")
 @app.route("/books")
 def book_list():
     selected_category = request.args.get("category", "").strip()
     books = [book for book in BOOKS if not selected_category or book["category"].casefold() == selected_category.casefold()]
-    return render_template("library/books/list.html", books=books, selected_category=selected_category)
+    return render_template("chuong4/books/list.html", books=books, selected_category=selected_category)
 
 
-@app.route("/library/books/<int:book_id>")
+@app.route("/chuong4/books/<int:book_id>")
 @app.route("/books/<int:book_id>")
 def book_detail(book_id):
     book = next((item for item in BOOKS if item["id"] == book_id), None)
     if book is None:
         abort(404, description=f"Không có sách với mã = {book_id}.")
-    return render_template("library/books/detail.html", book=book)
+    return render_template("chuong4/books/detail.html", book=book)
 
 
 @app.route("/api/books")
@@ -221,23 +257,23 @@ def api_books():
     return {"books": BOOKS, "total": len(BOOKS)}
 
 
-@app.route("/library/about", methods=["GET", "POST"])
+@app.route("/chuong4/about", methods=["GET", "POST"])
 @app.route("/about", methods=["GET", "POST"])
 def about():
     name = request.form.get("name", "") if request.method == "POST" else ""
-    return render_template("library/about.html", name=name)
+    return render_template("chuong4/about.html", name=name)
 
 
-@app.route("/library/contact")
+@app.route("/chuong4/contact")
 @app.route("/contact")
 def contact():
-    return render_template("library/contact.html")
+    return render_template("chuong4/contact.html")
 
 
 # Chương 5: forms, xác thực và các bài tính trong cùng app.
-@app.route("/forms")
+@app.route("/chuong5")
 def forms_home():
-    return render_template("forms/home.html")
+    return render_template("chuong5/home.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -258,7 +294,7 @@ def register():
             session["username"] = username
             flash("Đăng ký thành công.", "success")
             return redirect(url_for("profile"))
-    return render_template("forms/auth/register.html", form=form)
+    return render_template("chuong5/auth/register.html", form=form)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -279,13 +315,13 @@ def login():
                 return redirect(next_url)
             return redirect(url_for("profile"))
         flash("Tên đăng nhập hoặc mật khẩu không đúng.", "danger")
-    return render_template("forms/auth/login.html", form=form)
+    return render_template("chuong5/auth/login.html", form=form)
 
 
 @app.route("/profile")
 @login_required
 def profile():
-    return render_template("forms/auth/profile.html")
+    return render_template("chuong5/auth/profile.html")
 
 
 @app.post("/logout")
@@ -295,7 +331,7 @@ def logout():
     return redirect(url_for("home"))
 
 
-@app.route("/forms/calculator", methods=["GET", "POST"])
+@app.route("/chuong5/calculator", methods=["GET", "POST"])
 @app.route("/calculator", methods=["GET", "POST"])
 def calculator():
     if request.method == "POST":
@@ -303,7 +339,7 @@ def calculator():
             a = parse_number(request.form["a"])
             b = parse_number(request.form["b"])
         except (KeyError, ValueError):
-            return render_template("forms/calculator.html", ketqua="Vui lòng nhập số hợp lệ")
+            return render_template("chuong5/calculator.html", ketqua="Vui lòng nhập số hợp lệ")
         operation = request.form.get("operation")
         if operation == "cong":
             result = a + b
@@ -313,35 +349,35 @@ def calculator():
             result = a * b
         elif operation == "chia":
             if b == 0:
-                return render_template("forms/calculator.html", ketqua="Không thể chia cho 0")
+                return render_template("chuong5/calculator.html", ketqua="Không thể chia cho 0")
             result = a / b
         else:
-            return render_template("forms/calculator.html", ketqua="Phép tính không hợp lệ")
-        return render_template("forms/calculator.html", ketqua=round(result, 4))
-    return render_template("forms/calculator.html", ketqua=None)
+            return render_template("chuong5/calculator.html", ketqua="Phép tính không hợp lệ")
+        return render_template("chuong5/calculator.html", ketqua=round(result, 4))
+    return render_template("chuong5/calculator.html", ketqua=None)
 
 
-@app.route("/forms/diemhocphan", methods=["GET", "POST"])
+@app.route("/chuong5/diemhocphan", methods=["GET", "POST"])
 @app.route("/diemhocphan", methods=["GET", "POST"])
 def diemhocphan():
     if request.method == "POST":
         try:
             scores = [parse_number(request.form[name]) for name in ("a", "b", "c")]
         except (KeyError, ValueError):
-            return render_template("forms/diemhocphan.html", kq="Vui lòng nhập giá trị hợp lệ")
+            return render_template("chuong5/diemhocphan.html", kq="Vui lòng nhập giá trị hợp lệ")
         if not all(0 <= score <= 10 for score in scores):
-            return render_template("forms/diemhocphan.html", kq="Điểm phải nằm trong khoảng 0 đến 10")
+            return render_template("chuong5/diemhocphan.html", kq="Điểm phải nằm trong khoảng 0 đến 10")
         average = round(sum(scores) / 3, 2)
         grade = "A" if average >= 8.5 else "B" if average >= 7.0 else "C" if average >= 5.5 else "D" if average >= 4.0 else "F"
-        return render_template("forms/diemhocphan.html", kq=grade, dtb=average)
-    return render_template("forms/diemhocphan.html")
+        return render_template("chuong5/diemhocphan.html", kq=grade, dtb=average)
+    return render_template("chuong5/diemhocphan.html")
 
 
-@app.route("/forms/bmi", methods=["GET", "POST"])
+@app.route("/chuong5/bmi", methods=["GET", "POST"])
 @app.route("/bmi", methods=["GET", "POST"])
 def bmi():
     if request.method == "GET":
-        return render_template("forms/bmi.html")
+        return render_template("chuong5/bmi.html")
     height_raw, weight_raw = request.form.get("chieucao", ""), request.form.get("cannang", "")
     height_error = weight_error = None
     try:
@@ -359,7 +395,7 @@ def bmi():
     except ValueError:
         weight, weight_error = None, "Vui lòng nhập một số."
     if height_error or weight_error:
-        return render_template("forms/bmi.html", loi_cao=height_error, loi_nang=weight_error, chieucao=height_raw, cannang=weight_raw)
+        return render_template("chuong5/bmi.html", loi_cao=height_error, loi_nang=weight_error, chieucao=height_raw, cannang=weight_raw)
     bmi_value = round(weight / ((height / 100) ** 2), 1)
     if bmi_value < 18.5:
         category, color = "Thiếu cân", "warning"
@@ -369,7 +405,80 @@ def bmi():
         category, color = "Thừa cân", "warning"
     else:
         category, color = "Béo phì", "danger"
-    return render_template("forms/bmi.html", bmi=bmi_value, phanloai=category, mau=color, can_min=round(18.5 * (height / 100) ** 2, 1), can_max=round(22.9 * (height / 100) ** 2, 1), chieucao=height_raw, cannang=weight_raw)
+    return render_template("chuong5/bmi.html", bmi=bmi_value, phanloai=category, mau=color, can_min=round(18.5 * (height / 100) ** 2, 1), can_max=round(22.9 * (height / 100) ** 2, 1), chieucao=height_raw, cannang=weight_raw)
+
+
+@app.get("/them-mau")
+def add_sample():
+    total = db.session.scalar(db.select(db.func.count(Student.id)))
+    if total > 0:
+        return f"Đã có {total} sinh viên trong cơ sở dữ liệu."
+    an =Student(mssv="23T1020001", name="Nguyễn Văn An", gpa=8.5)
+    before = an.id
+    db.session.add(an)
+    db.session.add_all([
+        Student(mssv="23T1020002", name="Trần Thị Bình", gpa=6.0),
+        Student(mssv="23T1020003", name="Lê Hoàng Cường", gpa=9.5),
+        Student(mssv="23T1020004", name="Phạm Minh Dũng", gpa=4.0),
+        Student(mssv="23T1020005", name="Hoàng Thu Hà", gpa=0.0),
+        Student(mssv="23T1020006", name="Võ Quốc Khánh", gpa=7.5),
+    ])
+    db.session.commit()
+    return (f"Đã thêm 5 sinh viên. id của An: "
+            f"trước commit: {before}, "
+            f"sau commit: {an.id}")
+
+
+@app.get("/sqlite/hienthi")
+@app.get("/hienthi")
+def try_query():
+    students = db.session.execute(
+        db.select(Student).order_by(Student.id)
+    ).scalars().all()
+
+    total = len(students)
+
+    if total == 0:
+        return render_template(
+            "chuong6/hienthi.html",
+            students=[],
+            student_3=None,
+            student_99=None,
+            binh=None,
+            good_students=[],
+            total=0,
+            avg=0,
+        )
+
+    student_3 = db.session.get(Student, 3)
+    student_99 = db.session.get(Student, 99)
+
+    good_students = db.session.execute(
+        db.select(Student)
+        .where(Student.gpa >= 7.0)
+        .order_by(Student.gpa.desc())
+    ).scalars().all()
+
+    binh = db.session.scalar(
+        db.select(Student).filter_by(
+            mssv="23T1020002"
+        )
+    )
+
+    avg = db.session.scalar(
+        db.select(db.func.avg(Student.gpa))
+    ) or 0
+
+    return render_template(
+        "chuong6/hienthi.html",
+        students=students,
+        student_3=student_3,
+        student_99=student_99,
+        binh=binh,
+        good_students=good_students,
+        total=total,
+        avg=avg,
+    )
 
 
 @app.errorhandler(404)
